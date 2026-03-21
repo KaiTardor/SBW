@@ -1,0 +1,21 @@
+# Dependencias
+node_modules/
+
+# Prisma generado
+generated/
+
+# Logs
+logs/
+
+# Variables de entorno (contraseñas)
+.env
+
+# Imágenes descargadas del scraper
+imagenes/
+
+# Datos scrapeados
+productos.json
+
+# Sistema
+.DS_Store
+Thumbs.db

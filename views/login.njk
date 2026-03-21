@@ -1,0 +1,41 @@
+{% extends "base.njk" %}
+
+{% block title %}Iniciar Sesión - Tienda Prado{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5 col-lg-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <h2 class="text-center mb-4" style="font-family:'Playfair Display',serif; font-weight:400; letter-spacing:0.1em;">
+                    INICIAR SESIÓN
+                </h2>
+
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    Email o contraseña incorrectos. Inténtalo de nuevo.
+                </div>
+                {% endif %}
+
+                <form method="POST" action="/login">
+                    <div class="mb-3">
+                        <label for="email" class="form-label" style="font-size:0.85rem;">Dirección de email</label>
+                        <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="tu@email.com">
+                    </div>
+                    <div class="mb-4">
+                        <label for="contraseña" class="form-label" style="font-size:0.85rem;">Contraseña</label>
+                        <input type="password" class="form-control" id="contraseña" name="contraseña" required placeholder="••••••••">
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-dark">Acceder</button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a href="/" class="text-muted" style="font-size:0.82rem;">Volver a la tienda</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

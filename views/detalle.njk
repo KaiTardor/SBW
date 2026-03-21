@@ -1,0 +1,48 @@
+{% extends "base.njk" %}
+
+{% block title %}{{ producto.titulo }} - Tienda Prado{% endblock %}
+
+{% block content %}
+    <!-- Enlace de retorno arriba -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Catálogo Principal</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Detalle de Producto</li>
+        </ol>
+    </nav>
+
+    <div class="row gx-5">
+        <!-- Imagen Gigante a la izquierda -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow-sm border-0 p-3 bg-white text-center">
+                <img src="/public/imagenes/{{ producto.imagen }}" class="img-fluid rounded" alt="{{ producto.titulo }}">
+            </div>
+        </div>
+
+        <!-- Ficha técnica a la derecha -->
+        <div class="col-md-6">
+            <h1 class="display-5 fw-bold mb-3">{{ producto.titulo }}</h1>
+            
+            <!-- Precio Destacado -->
+            <div class="bg-light p-3 rounded mb-4 border border-1 shadow-sm d-flex justify-content-between align-items-center">
+                <span class="fs-4 text-muted">Precio:</span>
+                <span class="display-6 fw-bold text-success">{{ producto.precio | replace(".", ",") }} €</span>
+            </div>
+
+            <!-- Botones de Acción: Formulario de adición al carrito -->
+            <div class="mb-5">
+                <form action="/al-carrito/{{ producto.id }}" method="POST" class="d-flex gap-2">
+                    <input type="number" value="1" min="1" name="cantidad" class="form-control" style="width: 80px;" required>
+                    <button class="btn btn-primary px-4" type="submit">Añadir a la cesta</button>
+                    <a href="/" class="btn btn-outline-secondary px-4 ms-auto">Volver al catálogo</a>
+                </form>
+            </div>
+
+            <hr class="mb-4" />
+            
+            <!-- Descripción Larga -->
+            <h4 class="mb-3">📄 Descripción e Información</h4>
+            <div class="text-muted fs-5 lh-lg" style="white-space: pre-wrap;">{{ producto.descripcion }}</div>
+        </div>
+    </div>
+{% endblock %}

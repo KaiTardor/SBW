@@ -1,0 +1,25 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/prisma/client"
+  previewFeatures = ["fullTextSearchPostgres"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Producto {
+  id          Int     @id @default(autoincrement())
+  titulo      String  @db.Char(127) @map("título")
+  descripcion String  @db.Text @map("descripción")
+  precio      Decimal
+  imagen      String  @db.Char(127)
+}
+
+model Usuario {
+  email      String  @id @db.Char(127)
+  nombre     String  @db.Char(127)
+  contraseña String  @db.Text @map("contrasena")
+  admin      Boolean @default(false)
+}

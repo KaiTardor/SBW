@@ -1,0 +1,174 @@
+{% extends "base.njk" %}
+
+{% block title %}
+    {% if tituloPagina %}{{ tituloPagina }} - Tienda Prado{% else %}Impresiones - Tienda Prado{% endif %}
+{% endblock %}
+
+{% block content %}
+    {# URL base para filtros: si hay búsqueda, usar /buscar, si no, / #}
+    {% if busqueda %}
+        {% set baseUrl = "/buscar?busqueda=" + busqueda %}
+    {% else %}
+        {% set baseUrl = "/?" %}
+    {% endif %}
+
+    <div class="row">
+        <!-- Sidebar izquierdo: Subcategorías de IMPRESIONES -->
+        <div class="col-lg-2 col-md-3 mb-4">
+            <div class="sidebar-title">IMPRESIONES</div>
+            <ul class="sidebar-links">
+                <li><a href="/buscar?busqueda=Impresión a la carta">Impresión a la carta</a></li>
+                <li><a href="/buscar?busqueda=Lámina">Láminas y carteles</a></li>
+                <li><a href="/buscar?busqueda=Tako">Impresión en madera</a></li>
+                <li><a href="/buscar?busqueda=Postal puzzle">Postales puzzle y plegadas</a></li>
+                <li><a href="/buscar?busqueda=Impresión enmarcada">Impresiones enmarcadas</a></li>
+            </ul>
+        </div>
+
+        <!-- Contenido principal -->
+        <div class="col-lg-10 col-md-9">
+            <!-- Título de sección -->
+            <h2 class="text-center mb-3" style="font-family:'Playfair Display',serif; font-weight:400; letter-spacing:0.15em; font-size:1.6rem;">
+                {% if busqueda %}RESULTADOS: "{{ busqueda }}"
+                {% else %}IMPRESIONES{% endif %}
+            </h2>
+
+            <!-- Barra de filtros -->
+            <div class="filter-bar">
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Iconos de vista (grid / lista) -->
+                    <span class="view-toggle">
+                        <a href="{{ baseUrl }}{% if not busqueda %}&{% endif %}orden={{ orden }}&porPagina={{ porPagina }}&pagina=1&vista=grid"
+                           class="{% if vista != 'list' %}active{% endif %}" title="Vista cuadrícula">▦</a>
+                        <a href="{{ baseUrl }}{% if not busqueda %}&{% endif %}orden={{ orden }}&porPagina={{ porPagina }}&pagina=1&vista=list"
+                           class="{% if vista == 'list' %}active{% endif %}" title="Vista lista">☰</a>
+                    </span>
+                </div>
+
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <span class="showing-info">
+                        Mostrando
+                        {% if porPagina > 0 %}
+                            {{ ((pagina - 1) * porPagina + 1) }}-{% if pagina * porPagina < totalProductos %}{{ pagina * porPagina }}{% else %}{{ totalProductos }}{% endif %}
+                        {% else %}
+                            1-{{ totalProductos }}
+                        {% endif %}
+                        de {{ totalProductos }} artículo(s)
+                    </span>
+
+                    <!-- Selector de orden -->
+                    <select class="form-select form-select-sm" style="width:auto;" id="filtroOrden"
+                        onchange="aplicarFiltros()">
+                        <option value="" {% if not orden %}selected{% endif %}>Seleccionar</option>
+                        <option value="nombre_asc" {% if orden=='nombre_asc' %}selected{% endif %}>Nombre, A a Z</option>
+                        <option value="nombre_desc" {% if orden=='nombre_desc' %}selected{% endif %}>Nombre, Z a A</option>
+                        <option value="precio_asc" {% if orden=='precio_asc' %}selected{% endif %}>Precio, menor a mayor</option>
+                        <option value="precio_desc" {% if orden=='precio_desc' %}selected{% endif %}>Precio, mayor a menor</option>
+                    </select>
+
+                    <!-- Selector de cantidad por página -->
+                    <select class="form-select form-select-sm" style="width:auto;" id="filtroPorPagina"
+                        onchange="aplicarFiltros()">
+                        <option value="12" {% if porPagina==12 %}selected{% endif %}>12</option>
+                        <option value="24" {% if porPagina==24 %}selected{% endif %}>24</option>
+                        <option value="36" {% if porPagina==36 %}selected{% endif %}>36</option>
+                        <option value="0"  {% if porPagina==0 %}selected{% endif %}>Todos</option>
+                    </select>
+                </div>
+            </div>
+
+            {% if cards.length == 0 %}
+                <div class="text-center py-5 text-muted">
+                    <h3>No hemos encontrado nada ☹️</h3>
+                    <p>Prueba buscando otras palabras clave o vuelve al <a href="/">catálogo principal</a>.</p>
+                </div>
+            {% else %}
+
+                {# ====== VISTA CUADRÍCULA (grid) ====== #}
+                {% if vista != 'list' %}
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-4">
+                    {% for producto in cards %}
+                        <div class="col">
+                            <a href="/producto/{{ producto.id }}" class="text-decoration-none">
+                                <div class="card product-card h-100 shadow-sm">
+                                    <img src="/public/imagenes/{{ producto.imagen }}" class="card-img-top product-img" alt="{{ producto.titulo }}">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ producto.titulo }}</h5>
+                                        <p class="product-price">{{ producto.precio | replace(".", ",") }} €</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                {# ====== VISTA LISTA (list) ====== #}
+                {% else %}
+                <div class="list-view">
+                    {% for producto in cards %}
+                    <div class="list-item d-flex align-items-start border-bottom py-3">
+                        <!-- Imagen pequeña a la izquierda -->
+                        <a href="/producto/{{ producto.id }}" class="flex-shrink-0">
+                            <img src="/public/imagenes/{{ producto.imagen }}" class="list-item-img" alt="{{ producto.titulo }}">
+                        </a>
+                        <!-- Info central -->
+                        <div class="flex-grow-1 px-3">
+                            <a href="/producto/{{ producto.id }}" class="text-decoration-none text-dark">
+                                <h5 class="mb-1" style="font-size:0.95rem; font-weight:600;">{{ producto.titulo }}</h5>
+                            </a>
+                            {% if producto.descripcion %}
+                            <p class="text-muted mb-0" style="font-size:0.82rem; line-height:1.4;">
+                                {{ producto.descripcion | truncate(200) }}
+                            </p>
+                            {% endif %}
+                        </div>
+                        <!-- Precio y botón a la derecha -->
+                        <div class="flex-shrink-0 text-end" style="min-width:140px;">
+                            <p class="mb-2 fw-bold" style="font-size:1.05rem;">{{ producto.precio | replace(".", ",") }} €</p>
+                            <form action="/al-carrito/{{ producto.id }}" method="POST" class="d-inline">
+                                <input type="hidden" name="cantidad" value="1">
+                                <button type="submit" class="btn btn-sm" style="background:#8fbc8f; color:#fff; font-size:0.8rem;">Añadir a la cesta</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {# ====== PAGINACIÓN ====== #}
+                {% if totalPaginas > 1 %}
+                <nav aria-label="Navegación de páginas" class="mt-4 d-flex justify-content-center">
+                    <ul class="pagination-prado">
+                        {% for p in range(1, totalPaginas + 1) %}
+                        <li class="{% if p == pagina %}active{% endif %}">
+                            <a href="{{ baseUrl }}{% if not busqueda %}&{% endif %}orden={{ orden }}&porPagina={{ porPagina }}&vista={{ vista }}&pagina={{ p }}">{{ p }}</a>
+                        </li>
+                        {% endfor %}
+                        {% if pagina < totalPaginas %}
+                        <li>
+                            <a href="{{ baseUrl }}{% if not busqueda %}&{% endif %}orden={{ orden }}&porPagina={{ porPagina }}&vista={{ vista }}&pagina={{ pagina + 1 }}">›</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Script para filtros funcionales -->
+    <script>
+    function aplicarFiltros() {
+        const orden = document.getElementById('filtroOrden').value;
+        const porPagina = document.getElementById('filtroPorPagina').value;
+        const vista = '{{ vista }}';
+        {% if busqueda %}
+            const base = '/buscar?busqueda={{ busqueda }}';
+        {% else %}
+            const base = '/?';
+        {% endif %}
+        window.location.href = `${base}&orden=${orden}&porPagina=${porPagina}&vista=${vista}&pagina=1`;
+    }
+    </script>
+{% endblock %}
