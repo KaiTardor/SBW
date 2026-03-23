@@ -3,6 +3,13 @@ import nunjucks from 'nunjucks';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import session from 'express-session';
+
+declare module 'express-session' {
+  interface SessionData {
+    carrito: Array<{ id: number, cantidad: number }>;
+    total_carrito: number;
+  }
+}
 import cookieParser from 'cookie-parser';
 import jwt from 'jsonwebtoken';
 import logger from './logger.ts';
@@ -37,8 +44,8 @@ app.use(session({
 
 // Middleware global para inyectar info del carrito a las plantillas
 app.use((req, res, next) => {
-    res.locals.total_carrito = req.session.total_carrito || 0;
-    next();
+  res.locals.total_carrito = req.session.total_carrito || 0;
+  next();
 });
 
 // Middleware de autentificación JWT (antes de los routes)
@@ -51,7 +58,7 @@ app.use((req: any, res, next) => {
       req.admin = data.admin;
       app.locals.usuario = data.usuario;
       app.locals.admin = data.admin;
-      logger.info(`Autentificado ${data.usuario} admin:${data.admin}`);
+      logger.debug(`Autentificado ${data.usuario} admin:${data.admin}`);
     } catch (err) {
       // Token inválido o expirado, limpiar
       app.locals.usuario = undefined;
