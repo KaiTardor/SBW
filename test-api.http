@@ -1,0 +1,53 @@
+### Obtener todos los productos (primeros 20, ascendente)
+GET http://localhost:3000/api/productos
+
+###
+
+### Obtener productos del 1 al 10
+GET http://localhost:3000/api/productos?desde=1&hasta=10
+
+###
+
+### Obtener productos del 11 al 20 en orden descendente
+GET http://localhost:3000/api/productos?desde=11&hasta=20&ordenacion=descendente
+
+###
+
+### Obtener un producto por ID
+GET http://localhost:3000/api/productos/1
+
+###
+
+### Obtener un producto que no existe
+GET http://localhost:3000/api/productos/9999
+
+###
+
+### Añadir un producto nuevo
+POST http://localhost:3000/api/productos
+Content-Type: application/json
+
+{
+    "titulo": "Producto de prueba API",
+    "descripcion": "Descripción de prueba para el producto creado desde la API REST",
+    "precio": 19.99,
+    "imagen": "test_api.jpg"
+}
+
+###
+
+### Modificar el título y precio de un producto (cambiar el ID según convenga)
+PUT http://localhost:3000/api/productos/1
+Content-Type: application/json
+
+{
+    "titulo": "Tako modificado desde API",
+    "precio": 25.50
+}
+
+###
+
+### Eliminar un producto (cambiar el ID según convenga)
+DELETE http://localhost:3000/api/productos/1
+
+###

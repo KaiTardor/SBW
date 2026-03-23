@@ -29,8 +29,9 @@ nunjucks.configure('views', {
 
 app.set('view engine', 'njk');
 
-// Middleware para decodificar datos del body (formularios POST)
+// Middleware para decodificar datos del body (formularios POST y JSON para API)
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // Middleware para leer cookies
 app.use(cookieParser());
@@ -77,8 +78,10 @@ app.use('/public/imagenes', express.static('imagenes'));
 // Rutas
 import ProductosRouter from "./routes/productos.ts";
 import UsuariosRouter from "./routes/usuarios.ts";
+import ApiRouter from "./routes/api.ts";
 app.use('/', ProductosRouter);
 app.use('/', UsuariosRouter);
+app.use('/', ApiRouter);
 
 app.listen(port, () => {
   console.log(`Servidor ejecutándose en http://localhost:${port}`);
