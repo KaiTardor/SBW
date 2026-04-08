@@ -274,12 +274,10 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                     </a>
                 {% endif %}
-                <!-- Carrito (bolsa SVG) -->
-                <a href="/carrito" aria-label="Carrito">
+                <!-- Carrito (bolsa SVG) — abre offcanvas -->
+                <a href="#" data-bs-toggle="offcanvas" data-bs-target="#carritoOffcanvas" aria-label="Carrito" id="btnCarrito">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                    {% if total_carrito %}
-                    <span class="badge-carrito">{{ total_carrito }}</span>
-                    {% endif %}
+                    <span class="badge-carrito" id="badgeCarrito" style="{% if not total_carrito %}display:none{% endif %}">{{ total_carrito }}</span>
                 </a>
                 <span class="lang-switch"><a href="#">ES</a> | <a href="#">EN</a></span>
             </div>
@@ -315,6 +313,40 @@
         </div>
     </nav>
 
+    <!-- Offcanvas del Carrito (lado derecho) -->
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="carritoOffcanvas" aria-labelledby="carritoLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 class="offcanvas-title" id="carritoLabel" style="font-family:'Playfair Display',serif; letter-spacing:0.1em;">MI CESTA</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Cerrar"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <div id="carritoVacio" class="text-center py-5 text-muted" style="display:none;">
+                <p>Tu cesta está vacía</p>
+                <a href="/" class="btn btn-outline-dark btn-sm">Ver catálogo</a>
+            </div>
+            <div id="carritoItems"></div>
+        </div>
+        <div class="offcanvas-footer border-top p-3" id="carritoFooter" style="display:none;">
+            <div class="d-flex justify-content-between mb-2">
+                <strong>Total artículos:</strong>
+                <span id="carritoTotalCount">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- HTML Template para cada item del carrito -->
+    <template id="carritoItemTemplate">
+        <div class="carrito-item d-flex align-items-center border-bottom p-3">
+            <img src="" alt="" class="carrito-item-img me-3" style="width:60px; height:60px; object-fit:contain;">
+            <div class="flex-grow-1">
+                <p class="mb-0 fw-bold" style="font-size:0.82rem;" data-titulo></p>
+                <small class="text-muted" data-cantidad></small>
+                <p class="mb-0" style="font-size:0.85rem;" data-precio></p>
+            </div>
+            <button class="btn btn-sm btn-outline-danger ms-2" data-eliminar title="Eliminar del carrito">✕</button>
+        </div>
+    </template>
+
     <!-- Contenido Principal -->
     <main class="container my-4">
         {% if ErrorMensaje %}
@@ -335,5 +367,79 @@
 
     <!-- Bootstrap 5 JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript del carrito con DOM y template -->
+    <script>
+    (function() {
+        const offcanvasEl = document.getElementById('carritoOffcanvas');
+        const template = document.getElementById('carritoItemTemplate');
+        const contenedor = document.getElementById('carritoItems');
+        const vacioMsg = document.getElementById('carritoVacio');
+        const footer = document.getElementById('carritoFooter');
+        const totalCountEl = document.getElementById('carritoTotalCount');
+        const badge = document.getElementById('badgeCarrito');
+
+        // Cargar carrito cuando se abre el offcanvas
+        offcanvasEl.addEventListener('show.bs.offcanvas', cargarCarrito);
+
+        async function cargarCarrito() {
+            contenedor.innerHTML = '';
+            try {
+                const resp = await fetch('/api/carrito');
+                const data = await resp.json();
+
+                if (data.items.length === 0) {
+                    vacioMsg.style.display = 'block';
+                    footer.style.display = 'none';
+                } else {
+                    vacioMsg.style.display = 'none';
+                    footer.style.display = 'block';
+                    totalCountEl.textContent = data.total_carrito;
+
+                    data.items.forEach(item => {
+                        // Clonar el template
+                        const clon = template.content.cloneNode(true);
+                        const img = clon.querySelector('img');
+                        img.src = `/public/imagenes/${item.imagen.trim()}`;
+                        img.alt = item.titulo.trim();
+
+                        clon.querySelector('[data-titulo]').textContent = item.titulo.trim();
+                        clon.querySelector('[data-cantidad]').textContent = `Cantidad: ${item.cantidad}`;
+                        clon.querySelector('[data-precio]').textContent = `${parseFloat(item.precio).toFixed(2).replace('.', ',')} €`;
+
+                        // Botón eliminar
+                        const btnEliminar = clon.querySelector('[data-eliminar]');
+                        btnEliminar.addEventListener('click', () => eliminarItem(item.index));
+
+                        contenedor.appendChild(clon);
+                    });
+                }
+            } catch (err) {
+                contenedor.innerHTML = '<p class="text-danger p-3">Error al cargar el carrito</p>';
+            }
+        }
+
+        async function eliminarItem(index) {
+            try {
+                const resp = await fetch(`/api/carrito/${index}`, { method: 'DELETE' });
+                const data = await resp.json();
+
+                // Actualizar badge
+                if (data.total_carrito > 0) {
+                    badge.textContent = data.total_carrito;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+
+                // Recargar la lista
+                cargarCarrito();
+            } catch (err) {
+                console.error('Error eliminando item:', err);
+            }
+        }
+    })();
+    </script>
 </body>
 </html>
+

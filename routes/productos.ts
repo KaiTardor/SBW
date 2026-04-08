@@ -1,6 +1,14 @@
 import express from "express";
 import prisma from "../prisma/prisma.client.ts";
 import logger from "../logger.ts";
+import 'express-session';
+
+declare module 'express-session' {
+  interface SessionData {
+    carrito: Array<{id: number, cantidad: number}>;
+    total_carrito: number;
+  }
+}
 
 const router = express.Router();
 
@@ -121,12 +129,49 @@ router.get('/producto/:id', async (req, res) => {
     }
 });
 
-// Página temporal del carrito
-router.get('/carrito', (req, res) => {
-    res.send("<h1>🛒 Tu Carrito</h1><p>Su visualización detallada se implementará en la próxima tarea.</p><br><a href='/'>Volver al catálogo</a>");
+// API ad hoc del carrito: obtener items con datos del producto
+router.get('/api/carrito', async (req, res) => {
+    const carrito = req.session.carrito || [];
+
+    // Enriquecer cada item con los datos del producto
+    const items = await Promise.all(
+        carrito.map(async (item: { id: number; cantidad: number }, index: number) => {
+            const producto = await prisma.producto.findUnique({ where: { id: item.id } });
+            return {
+                index,
+                id: item.id,
+                cantidad: item.cantidad,
+                titulo: producto?.titulo || 'Producto no encontrado',
+                precio: producto?.precio || 0,
+                imagen: producto?.imagen || ''
+            };
+        })
+    );
+
+    const total_carrito = req.session.total_carrito || 0;
+    res.json({ items, total_carrito });
 });
 
-// Carrito POST
+// API ad hoc: eliminar un item del carrito por index
+router.delete('/api/carrito/:index', (req, res) => {
+    const index = parseInt(req.params.index);
+    const carrito = req.session.carrito || [];
+
+    if (index < 0 || index >= carrito.length) {
+        return res.status(400).json({ error: 'Índice inválido' });
+    }
+
+    carrito.splice(index, 1);
+    req.session.carrito = carrito;
+
+    const total_carrito = carrito.reduce((s: number, i: { id: number; cantidad: number }) => s + i.cantidad, 0);
+    req.session.total_carrito = total_carrito;
+
+    logger.debug(`Carrito: eliminado item index=${index}, total=${total_carrito}`);
+    res.json({ mensaje: 'Eliminado', total_carrito });
+});
+
+// Carrito POST (desde el formulario de detalle)
 router.post('/al-carrito/:id', async (req, res) => {
     const id = Number(req.params.id);
     const cantidad = Number(req.body.cantidad);
@@ -139,7 +184,7 @@ router.post('/al-carrito/:id', async (req, res) => {
             req.session.carrito = [{ id, cantidad }];
         }
 
-        const total_carrito = req.session.carrito.reduce((suma: number, item: {id:number, cantidad:number}) => suma + item.cantidad, 0);
+        const total_carrito = req.session.carrito.reduce((suma: number, item: { id: number; cantidad: number }) => suma + item.cantidad, 0);
         res.locals.total_carrito = total_carrito;
         req.session.total_carrito = total_carrito;
         logger.debug(`Total carrito actualizado: ${res.locals.total_carrito}`);
