@@ -132,24 +132,30 @@ router.get('/producto/:id', async (req, res) => {
 // API ad hoc del carrito: obtener items con datos del producto
 router.get('/api/carrito', async (req, res) => {
     const carrito = req.session.carrito || [];
+    let total_precio = 0;
 
     // Enriquecer cada item con los datos del producto
     const items = await Promise.all(
         carrito.map(async (item: { id: number; cantidad: number }, index: number) => {
             const producto = await prisma.producto.findUnique({ where: { id: item.id } });
+            const precio = producto?.precio ? Number(producto.precio) : 0;
+            const subtotal = precio * item.cantidad;
+            total_precio += subtotal;
+
             return {
                 index,
                 id: item.id,
                 cantidad: item.cantidad,
                 titulo: producto?.titulo || 'Producto no encontrado',
-                precio: producto?.precio || 0,
+                precio: precio,
+                subtotal: subtotal,
                 imagen: producto?.imagen || ''
             };
         })
     );
 
     const total_carrito = req.session.total_carrito || 0;
-    res.json({ items, total_carrito });
+    res.json({ items, total_carrito, total_precio });
 });
 
 // API ad hoc: eliminar un item del carrito por index
@@ -171,6 +177,40 @@ router.delete('/api/carrito/:index', (req, res) => {
     res.json({ mensaje: 'Eliminado', total_carrito });
 });
 
+// API ad hoc: actualizar cantidad de un item del carrito
+router.put('/api/carrito/:index', (req, res) => {
+    const index = parseInt(req.params.index);
+    const delta = parseInt(req.body.delta) || 0;
+    const carrito = req.session.carrito || [];
+
+    if (index < 0 || index >= carrito.length) {
+        return res.status(400).json({ error: 'Índice inválido' });
+    }
+
+    carrito[index].cantidad += delta;
+
+    // Si la cantidad llega a 0, lo eliminamos
+    if (carrito[index].cantidad <= 0) {
+        carrito.splice(index, 1);
+    }
+
+    req.session.carrito = carrito;
+
+    const total_carrito = carrito.reduce((s: number, i: { id: number; cantidad: number }) => s + i.cantidad, 0);
+    req.session.total_carrito = total_carrito;
+
+    res.json({ mensaje: 'Cantidad actualizada', total_carrito });
+});
+
+// API ad hoc: tramitar pedido (vaciar carrito)
+router.post('/api/carrito/checkout', (req, res) => {
+    req.session.carrito = [];
+    req.session.total_carrito = 0;
+    res.locals.total_carrito = 0;
+    logger.debug('Pedido tramitado, carrito vaciado');
+    res.json({ mensaje: 'Pedido tramitado con éxito' });
+});
+
 // Carrito POST (desde el formulario de detalle)
 router.post('/al-carrito/:id', async (req, res) => {
     const id = Number(req.params.id);
@@ -178,8 +218,14 @@ router.post('/al-carrito/:id', async (req, res) => {
     logger.debug(`Al carrito de ${id} ${cantidad} unidad(es)`);
 
     if (cantidad > 0) {
-        if (req.session.carrito !== undefined) {
-            req.session.carrito.push({ id, cantidad });
+        if (req.session.carrito) {
+            // Buscar si ya existe el producto en el carrito
+            const existente = req.session.carrito.find(item => item.id === id);
+            if (existente) {
+                existente.cantidad += cantidad; // Agrupar
+            } else {
+                req.session.carrito.push({ id, cantidad });
+            }
         } else {
             req.session.carrito = [{ id, cantidad }];
         }

@@ -4,6 +4,29 @@ import logger from "../logger.ts";
 
 const router = express.Router();
 
+// GET /api/productos/random — Un producto aleatorio (debe ir antes del /:id para no confundirse)
+router.get('/api/productos/random', async (req, res) => {
+    try {
+        const count = await prisma.producto.count();
+        if (count === 0) {
+            return res.status(404).json({ error: "No hay productos disponibles" });
+        }
+        const skip = Math.floor(Math.random() * count);
+        const producto = await prisma.producto.findFirst({ skip });
+
+        // Si la url de la imagen no es absoluta, le añadimos la url del backend para el SPA
+        if (producto && producto.imagen && !producto.imagen.startsWith('http')) {
+            producto.imagen = `http://localhost:3000/public/imagenes/${producto.imagen.trim()}`;
+        }
+
+        logger.debug(`API: GET /api/productos/random -> ID ${producto?.id}`);
+        res.json(producto);
+    } catch (error: any) {
+        logger.error(`API error GET /api/productos/random: ${error.message}`);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // GET /api/productos — Todos los productos con paginación y ordenación
 router.get('/api/productos', async (req, res) => {
     try {

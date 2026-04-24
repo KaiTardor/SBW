@@ -3,6 +3,7 @@ import nunjucks from 'nunjucks';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import session from 'express-session';
+import cors from 'cors';
 
 declare module 'express-session' {
   interface SessionData {
@@ -19,6 +20,8 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+app.use(cors());
 
 // Configurar Nunjucks
 nunjucks.configure('views', {
