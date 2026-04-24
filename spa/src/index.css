@@ -1,0 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=EB+Garamond:ital@0;1&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-montserrat: "Montserrat", sans-serif;
+  
+  /* Definimos los colores olive para los botones */
+  --color-olive-300: #daddc7;
+  --color-olive-400: #c2c6a7;
+}
+
+body {
+  margin: 0;
+  background-color: #f9f9f9;
+}

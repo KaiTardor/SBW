@@ -1,29 +1,42 @@
 {% extends "base.njk" %}
 
-{% block title %}Iniciar Sesión - Tienda Prado{% endblock %}
+{% block title %}Crear cuenta - Tienda Prado{% endblock %}
 
 {% block content %}
     <div style="max-width:550px; margin:0 auto;">
     <h3 class="mb-4" style="font-family:'Open Sans',sans-serif; font-weight:300; font-size:1.3rem; color:#333;">
-        Inicia sesión con tu cuenta
+        Crear una cuenta nueva
     </h3>
 
     {% if error %}
     <div class="alert alert-danger d-flex align-items-center" role="alert" style="font-size:0.85rem;">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="me-2 flex-shrink-0" viewBox="0 0 16 16"><path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/></svg>
-        <div>Email o contraseña incorrectos. Comprueba que el email es válido y que la contraseña tiene al menos 5 caracteres.</div>
+        <div>{{ error }}</div>
     </div>
     {% endif %}
 
     <div class="border p-4 bg-white">
-        <form method="POST" action="/login" id="loginForm" novalidate>
-            <!-- Email con teclado especializado en móvil -->
+        <form method="POST" action="/registro" id="registroForm" novalidate>
+            <!-- Nombre -->
+            <div class="mb-4">
+                <label for="nombre" class="form-label" style="font-size:0.75rem; color:#8b6914; text-transform:uppercase; letter-spacing:0.03em; cursor:pointer;">Nombre completo</label>
+                <input type="text"
+                       class="form-control border-0 border-bottom rounded-0 px-0"
+                       id="nombre" name="nombre"
+                       required autofocus
+                       autocomplete="name"
+                       placeholder="Tu nombre y apellidos"
+                       style="box-shadow:none;">
+                <div class="invalid-feedback" style="font-size:0.75rem;">Por favor, introduce tu nombre.</div>
+            </div>
+
+            <!-- Email -->
             <div class="mb-4">
                 <label for="email" class="form-label" style="font-size:0.75rem; color:#8b6914; text-transform:uppercase; letter-spacing:0.03em; cursor:pointer;">Correo electrónico</label>
                 <input type="email"
                        class="form-control border-0 border-bottom rounded-0 px-0"
                        id="email" name="email"
-                       required autofocus
+                       required
                        inputmode="email"
                        autocomplete="email"
                        placeholder="ejemplo@correo.com"
@@ -31,31 +44,26 @@
                 <div class="invalid-feedback" style="font-size:0.75rem;">Introduce un email válido (ej: usuario@dominio.com)</div>
             </div>
 
-            <!-- Contraseña con toggle de visibilidad y requisitos -->
-            <div class="mb-3 position-relative">
+            <!-- Contraseña -->
+            <div class="mb-4 position-relative">
                 <label for="contrasena" class="form-label" style="font-size:0.75rem; color:#8b6914; text-transform:uppercase; letter-spacing:0.03em; cursor:pointer;">Contraseña</label>
                 <input type="password"
                        class="form-control border-0 border-bottom rounded-0 px-0 pe-4"
                        id="contrasena" name="contraseña"
                        required minlength="5"
-                       autocomplete="current-password"
-                       placeholder="Tu contraseña"
+                       autocomplete="new-password"
+                       placeholder="Mínimo 5 caracteres"
                        style="box-shadow:none;">
                 <!-- Ojo para mostrar/ocultar -->
                 <span id="togglePassword" class="position-absolute" style="right:0; top:38px; cursor:pointer; color:#888;" title="Mostrar/ocultar contraseña">
                     <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </span>
                 <div class="invalid-feedback" style="font-size:0.75rem;"></div>
-                <small class="text-muted" style="font-size:0.7rem;">Longitud de al menos 5 caracteres</small>
             </div>
 
-            <div class="text-center mt-4 mb-3">
-                <a href="#" class="text-muted" style="font-size:0.82rem;">¿Has olvidado tu contraseña?</a>
-            </div>
-
-            <div class="text-center mb-2">
-                <button type="submit" id="btnLogin" class="btn px-5 py-2" style="background:#555; color:#fff; font-size:0.85rem; letter-spacing:0.05em;">
-                    Acceder a tu cuenta
+            <div class="text-center mt-5 mb-2">
+                <button type="submit" class="btn px-5 py-2" style="background:#555; color:#fff; font-size:0.85rem; letter-spacing:0.05em;">
+                    Crear cuenta
                 </button>
             </div>
         </form>
@@ -64,16 +72,17 @@
     <div class="mt-4 mb-5">
         <hr>
         <div class="text-center">
-            <a href="/registro" style="color:#2a7ab5; font-size:0.9rem; text-decoration:none;">¿No tienes una cuenta? Créala aquí ›</a>
+            <a href="/login" style="color:#2a7ab5; font-size:0.9rem; text-decoration:none;">¿Ya tienes cuenta? Inicia sesión aquí ›</a>
         </div>
     </div>
     </div>
 
     <script>
     (function() {
-        const form = document.getElementById('loginForm');
+        const form = document.getElementById('registroForm');
         const email = document.getElementById('email');
         const pass = document.getElementById('contrasena');
+        const nombre = document.getElementById('nombre');
         const toggleBtn = document.getElementById('togglePassword');
 
         // Toggle mostrar/ocultar contraseña
@@ -83,7 +92,12 @@
             toggleBtn.style.color = isPassword ? '#333' : '#888';
         });
 
-        // Validar email on blur
+        // Validaciones on blur
+        nombre.addEventListener('blur', () => {
+            nombre.classList.toggle('is-invalid', nombre.value.trim() === '');
+            if (nombre.value.trim() !== '') nombre.classList.add('is-valid');
+        });
+
         email.addEventListener('blur', () => {
             if (email.value && !email.validity.valid) {
                 email.classList.add('is-invalid');
@@ -93,13 +107,12 @@
             }
         });
 
-        // Validar contraseña on blur: decir POR QUÉ es inválida
         pass.addEventListener('blur', () => {
             const val = pass.value;
-            const feedback = pass.nextElementSibling.nextElementSibling; // .invalid-feedback
+            const feedback = pass.nextElementSibling.nextElementSibling; 
             if (val && val.length < 5) {
                 pass.classList.add('is-invalid');
-                feedback.textContent = `La contraseña debe tener al menos 5 caracteres (ahora tiene ${val.length})`;
+                feedback.textContent = `Debe tener al menos 5 caracteres (tiene ${val.length})`;
             } else if (val) {
                 pass.classList.remove('is-invalid');
                 pass.classList.add('is-valid');
@@ -107,13 +120,14 @@
         });
 
         // Limpiar estado al escribir
-        email.addEventListener('input', () => email.classList.remove('is-invalid', 'is-valid'));
-        pass.addEventListener('input', () => pass.classList.remove('is-invalid', 'is-valid'));
+        [nombre, email, pass].forEach(el => {
+            el.addEventListener('input', () => el.classList.remove('is-invalid', 'is-valid'));
+        });
 
-        // Validar todo al enviar
         form.addEventListener('submit', (e) => {
             if (!form.checkValidity()) {
                 e.preventDefault();
+                nombre.dispatchEvent(new Event('blur'));
                 email.dispatchEvent(new Event('blur'));
                 pass.dispatchEvent(new Event('blur'));
             }
