@@ -1,4 +1,4 @@
-# 🏛️ Tienda Prado - SBW
+# Tienda Prado - SBW
 
 Aplicación web de e-commerce que replica la tienda online del Museo del Prado, desarrollada como proyecto de la asignatura SBW.
 
@@ -6,55 +6,77 @@ Aplicación web de e-commerce que replica la tienda online del Museo del Prado, 
 
 - **Backend:** Node.js + Express + TypeScript
 - **Base de Datos:** PostgreSQL (Docker) + Prisma ORM
-- **Vistas SSR:** Nunjucks + Bootstrap 5
-- **Frontend SPA:** React + Vite + Tailwind CSS v4
+- **Vistas:** Nunjucks + Bootstrap 5 + React (SPA)
+- **Styling:** CSS + Bootstrap + Tailwind CSS
 - **Autenticación:** JWT + bcrypt + cookies httpOnly
 - **Logging:** Winston
-- **Scraping:** Playwright
+- **Herramientas:** Vite (SPA), Playwright (Scraping)
 
-## Estructura del Proyecto
+## Estructura MVC
 
-```text
+```
 ├── prisma/                  Model (esquema + cliente Prisma)
-├── routes/                  Controladores (incluye api.ts con endpoints RESTful)
-├── views/                   Vistas SSR (Nunjucks)
-├── spa/                     Frontend Independiente (React + Vite + Tailwind)
-│   ├── src/
-│   │   ├── components/      Cuadros.tsx (Galería), Inspiracion.tsx (Citas)
-│   │   └── App.tsx          Layout Maestro-Detalle tipo Museo
-├── imagenes/                Imágenes locales
-├── index.ts                 Servidor Express (Configurado con CORS)
-└── ...
+├── routes/                  Controladores
+│   ├── api.ts               API RESTful de productos
+│   ├── productos.ts         Catálogo, carrito dinámico, checkout
+│   └── usuarios.ts          Login, registro y JWT
+├── views/                   Vistas (Nunjucks)
+│   ├── base.njk             Layout maestro + lógica Carrito DOM
+│   ├── portada.njk          Catálogo
+│   ├── detalle.njk          Ficha de producto
+│   └── login.njk            Login con UX mejorada
+├── spa/                     Single Page Application (React + Vite)
+│   ├── src/components/      Componentes (Cuadros, Inspiracion)
+│   └── src/App.tsx          Layout Maestro-Detalle SPA
+├── imagenes/                Imágenes de productos (scrapeadas)
+├── index.ts                 Servidor Express + Configuración CORS
+├── logger.ts                Configuración Winston
+├── seed.ts                  Poblado de la BD
+├── registra_usuarios.ts     Usuarios de prueba
+└── docker-compose.yml       PostgreSQL en contenedor
 ```
 
 ## Instalación y Ejecución
 
-Para iniciar el **Backend y la Tienda principal**:
+### Backend (Express)
 ```bash
 # Instalar dependencias
 npm install
-
-# Levantar PostgreSQL, migrar y generar Prisma
+# Levantar PostgreSQL
 docker compose up -d
+# Migrar BD y poblar
 npx prisma migrate dev
-npx prisma generate
-
-# Poblar la BD
 npx tsx seed.ts
 npx tsx registra_usuarios.ts
-
-# Iniciar servidor Express (Puerto 3000)
+# Iniciar servidor
 npm run dev
 ```
 
-Para iniciar la **SPA (Galería de React)**:
-Abre una segunda terminal y ejecuta:
+### Frontend SPA (React)
 ```bash
 cd spa
 npm install
 npm run dev
 ```
-La tienda funcionará en `http://localhost:3000` y la Galería SPA en `http://localhost:5173`.
+
+## Funcionalidades (Entrega 2)
+
+### Backend & API
+- ✅ **API RESTful:** Endpoints para gestión de productos y servicios para la SPA.
+- ✅ **CORS:** Configuración de seguridad para permitir comunicación entre dominios.
+- ✅ **Registro:** Sistema de alta de nuevos usuarios con autologin.
+- ✅ **Checkout:** API para finalización de pedido y gestión de estado del carrito.
+
+### UX & Carrito DOM
+- ✅ **Mejoras UX:** Validación de campos *on-blur*, teclados especializados y visibilidad de contraseña.
+- ✅ **Carrito Dinámico:** Implementación de Offcanvas usando `<template>` y manipulación de DOM.
+- ✅ **Gestión de Cantidades:** Botones +/- para actualizar el carrito en tiempo real sin recargar.
+
+### SPA (React + Tailwind)
+- ✅ **Arquitectura SPA:** Proyecto independiente con Vite y React.
+- ✅ **Galería Inmersiva:** Auto-rotación de obras (10s) con barra de progreso visual.
+- ✅ **Inspiración Artística:** Consumo de API externa con navegación por historial (flechas).
+- ✅ **Diseño Premium:** Estética "Prado" con Tailwind CSS, fuentes serif y layout responsivo.
 
 ## Funcionalidades (Entrega 1)
 
@@ -63,16 +85,9 @@ La tienda funcionará en `http://localhost:3000` y la Galería SPA en `http://lo
 - ✅ Catálogo con paginación, ordenación y vistas grid/lista
 - ✅ Búsqueda por título y descripción
 - ✅ Página de detalle de producto
-- ✅ Autenticación básica con JWT
+- ✅ Carrito de compras con sesiones
+- ✅ Autenticación con JWT y cookies seguras
 - ✅ Sistema de logging con Winston
-
-## Funcionalidades (Entrega 2)
-
-- ✅ **API RESTful:** Rutas de datos CRUD (`GET`, `POST`, `PUT`, `DELETE`) en `/api/productos`.
-- ✅ **CORS Habilitado:** Comunicación segura entre puertos distintos (Express <-> Vite).
-- ✅ **Experiencia de Usuario (UX) Mejorada:** Registro y Login rediseñados con validaciones instantáneas (*on-blur*), teclado dinámico, alternancia de visibilidad de contraseña y auto-focus.
-- ✅ **Carrito Dinámico con DOM:** Carrito lateral tipo *offcanvas* que evita recargas de página. Usa clones de etiquetas `<template>`, agrupación automática de items con controles `+` y `-`, cálculo en tiempo real de subtotales y proceso de Checkout vía API ad-hoc.
-- ✅ **SPA con React + Tailwind:** Interfaz inmersiva ("Maestro-Detalle") que combina una galería de arte con auto-rotación cada 10s (consumiendo el API interno mediante `SWR`) y un lector interactivo de citas célebres (consumiendo un API externo).
 
 ## Usuarios de prueba
 
