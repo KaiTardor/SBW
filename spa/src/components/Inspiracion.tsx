@@ -62,7 +62,7 @@ export default function Inspiracion() {
         </button>
 
         {/* Contenido Cita */}
-        <div className="flex-grow text-center min-h-[300px] flex flex-col justify-center relative">
+        <div className="flex-grow text-center min-h-[150px] md:min-h-[300px] max-h-full overflow-y-auto flex flex-col justify-center relative">
           {loading && indice === historial.length - 1 ? (
             <div className="animate-pulse flex flex-col items-center">
               <div className="h-6 bg-gray-300/50 rounded w-3/4 mb-6"></div>

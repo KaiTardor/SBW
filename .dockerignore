@@ -1,0 +1,25 @@
+# ── Dependencias (se reinstalan dentro del contenedor) ────────────────────────
+node_modules/
+
+# ── Proyectos frontend (no son parte del backend Express) ────────────────────
+spa/
+astro-tienda/
+
+# ── Ficheros generados en runtime ─────────────────────────────────────────────
+generated/
+logs/
+
+# ── Entorno de desarrollo ─────────────────────────────────────────────────────
+.env
+.git/
+.gitignore
+
+# ── Herramientas y ficheros de desarrollo ─────────────────────────────────────
+scrap-tp.js
+test-api.http
+Makefile
+*.md
+
+# ── Sistema operativo ─────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

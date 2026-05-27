@@ -11,8 +11,11 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.4",
+    "daisyui": "^5.5.1-beta.2",
+    "embla-carousel-react": "^8.6.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
+    "react-router-dom": "^7.15.0",
     "swr": "^2.4.1",
     "tailwindcss": "^4.2.4"
   },

@@ -6,6 +6,7 @@ const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function Cuadros() {
   const [progress, setProgress] = useState(0);
+  const [tickReset, setTickReset] = useState(0);
   const { data, error, isLoading, mutate } = useSWR(url, fetcher, {
     revalidateOnFocus: false
   });
@@ -30,7 +31,13 @@ export default function Cuadros() {
     }, intervalTime);
 
     return () => clearInterval(interval);
-  }, [mutate, data, isLoading, error]);
+  }, [mutate, data, isLoading, error, tickReset]);
+
+  const handleManualNext = () => {
+    setProgress(0);
+    setTickReset(prev => prev + 1);
+    mutate();
+  };
 
   return (
     <div className="w-full h-full max-w-2xl flex flex-col items-center justify-center relative group py-4">
@@ -41,7 +48,7 @@ export default function Cuadros() {
       </div>
       
       {/* Contenedor flexible para la imagen que evita que se pase del alto de la pantalla */}
-      <div className="relative w-full flex-grow min-h-0 shadow-xl rounded-sm overflow-hidden bg-gray-50 transition-transform duration-700 hover:scale-[1.02] mb-4 flex items-center justify-center">
+      <div className="relative w-full flex-grow min-h-[250px] md:min-h-0 shadow-xl rounded-sm overflow-hidden bg-gray-50 transition-transform duration-700 hover:scale-[1.02] mb-4 flex items-center justify-center">
         {isLoading ? (
           <div className="w-full h-full flex flex-col items-center justify-center absolute inset-0">
             <div className="w-8 h-8 border-4 border-gray-300 border-t-[#d4af37] rounded-full animate-spin mb-4"></div>
@@ -69,7 +76,7 @@ export default function Cuadros() {
         
         {/* Botón Actualizar */}
         <button 
-          onClick={() => mutate()}
+          onClick={handleManualNext}
           className="absolute bottom-3 right-3 bg-white/90 backdrop-blur-md p-3 rounded-full shadow-lg hover:bg-white transition-all text-gray-800 opacity-0 group-hover:opacity-100 z-10 border border-gray-100 hover:scale-110"
           title="Siguiente obra manual"
         >

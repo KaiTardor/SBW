@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { PrismaClient } from '../generated/prisma/client/index.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 
 // 1. Setup the adapter con la librería pg
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
