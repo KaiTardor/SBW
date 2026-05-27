@@ -1,0 +1,73 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose-prod.yml  —  Despliegue IaaS (Tarea 13)
+#
+# Levanta tres servicios:
+#   1. db            → PostgreSQL 16
+#   2. tienda-prado  → Aplicación Express + Prisma (construida desde Dockerfile)
+#   3. caddy         → Proxy inverso (HTTPS, caché, logs)
+#
+# Uso:
+#   docker compose -f docker-compose-prod.yml up -d --build
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── 1. Base de datos PostgreSQL ──────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-yo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-una_clave_muy_segura_123}
+      POSTGRES_DB: ${POSTGRES_DB:-ssbw}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # La BD NO expone puerto al host en producción;
+    # sólo es accesible por la red interna de Docker.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-yo} -d ${POSTGRES_DB:-ssbw}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── 2. Aplicación Tienda Prado ────────────────────────────────────────────────
+  tienda-prado:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy   # Espera a que Postgres esté listo
+    environment:
+      # Sobrescribir las ENV del Dockerfile con valores de producción reales.
+      # En un VPS real, usa un fichero .env o Docker Secrets.
+      NODE_ENV: production
+      PORT: 3000
+      POSTGRES_USER: ${POSTGRES_USER:-yo}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-una_clave_muy_segura_123}
+      POSTGRES_DB: ${POSTGRES_DB:-ssbw}
+      POSTGRES_HOST: db
+      DATABASE_URL: postgresql://${POSTGRES_USER:-yo}:${POSTGRES_PASSWORD:-una_clave_muy_segura_123}@db:5432/${POSTGRES_DB:-ssbw}?schema=public
+      SECRET_KEY: ${SECRET_KEY:-clave_supersegura_12345}
+    volumes:
+      - ./imagenes:/build/imagenes:ro  # Imágenes de productos (datos, no código)
+    # No expone puerto directamente: el tráfico llega sólo a través de Caddy.
+
+  # ── 3. Proxy inverso Caddy ────────────────────────────────────────────────────
+  caddy:
+    image: caddy:alpine
+    restart: unless-stopped
+    depends_on:
+      - tienda-prado
+    ports:
+      - "80:80"      # HTTP  (en producción con dominio, Caddy añade 443 automáticamente)
+      - "443:443"    # HTTPS (necesario si se configura un dominio real en Caddyfile)
+    volumes:
+      - caddy_config:/config            # Caché de configuración de Caddy
+      - caddy_data:/data                # Certificados TLS gestionados por Caddy
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro  # Configuración del proxy (solo lectura)
+
+# ── Volúmenes persistentes ─────────────────────────────────────────────────────
+volumes:
+  postgres_data:   # Datos de PostgreSQL
+  caddy_config:    # Estado interno de Caddy
+  caddy_data:      # Certificados TLS (Let's Encrypt / ZeroSSL)

@@ -1,0 +1,29 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Caddyfile  —  Configuración del proxy inverso (Tarea 13)
+#
+# Modo desarrollo/VPS sin dominio: escucha en el puerto 80 (HTTP).
+#
+# Para activar HTTPS automático con Let's Encrypt, sustituye ":80" por tu
+# dominio real, por ejemplo:
+#
+#   tiendaprado.ejemplo.com {
+#     ...
+#   }
+#
+# Caddy gestionará automáticamente los certificados SSL y la redirección
+# HTTP → HTTPS sin ninguna configuración adicional.
+# ─────────────────────────────────────────────────────────────────────────────
+
+:80 {
+
+  # Reenviar todo el tráfico al contenedor de la tienda
+  handle_path /* {
+    reverse_proxy tienda-prado:3000
+  }
+
+  # Logging estructurado a stdout (visible con: docker compose logs caddy)
+  log {
+    output stdout
+  }
+
+}

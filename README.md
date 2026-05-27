@@ -11,6 +11,7 @@ Aplicación web de e-commerce que replica la tienda online del Museo del Prado, 
 - **SSG Astro:** Astro + React Islands + Tailwind v4 + DaisyUI v5
 - **Autenticación:** JWT + bcrypt + cookies httpOnly
 - **Logging:** Winston
+- **Despliegue IaaS:** Docker Compose + Caddy (proxy inverso)
 
 ## Estructura del Proyecto
 
@@ -41,7 +42,10 @@ Aplicación web de e-commerce que replica la tienda online del Museo del Prado, 
 ├── logger.ts                Configuración Winston
 ├── seed.ts                  Poblado de la BD
 ├── registra_usuarios.ts     Usuarios de prueba
-└── docker-compose.yml       PostgreSQL en contenedor
+├── docker-compose.yml       PostgreSQL en contenedor (desarrollo)
+├── docker-compose-prod.yml  Despliegue IaaS completo (BD + App + Caddy)
+├── Dockerfile               Imagen Docker de la tienda (Node 24 Alpine)
+└── Caddyfile                Configuración del proxy inverso Caddy
 ```
 
 ## Instalación y Ejecución
@@ -74,7 +78,57 @@ pnpm preview    # Previsualizar build (simula Netlify)
 
 > El backend (puerto 3000) debe estar levantado para que las imágenes carguen en la SPA. El sitio Astro es completamente autónomo tras el build.
 
+### Despliegue IaaS con Docker Compose (Tarea 13)
+
+> Requiere tener Docker instalado y corriendo. La tienda se expone en `http://localhost` (puerto 80) a través de Caddy como proxy inverso.
+
+#### Primera vez (instalación desde cero)
+
+```bash
+# 1. Construir la imagen y levantar los 3 servicios (BD + App + Caddy)
+#    Las migraciones de Prisma se ejecutan automáticamente al arrancar.
+docker compose -f docker-compose-prod.yml up -d --build
+
+# 2. Poblar la base de datos con los 50 productos (solo la primera vez)
+docker compose -f docker-compose-prod.yml exec tienda-prado npx tsx seed.ts
+
+# 3. Crear los usuarios de prueba (solo la primera vez)
+docker compose -f docker-compose-prod.yml exec tienda-prado npx tsx registra_usuarios.ts
+```
+
+La tienda estará disponible en **http://localhost**.
+
+#### 🌐 Activar HTTPS en un VPS real
+
+Sustituye `:80` en [`Caddyfile`](./Caddyfile) por tu dominio:
+```
+tiendaprado.ejemplo.com {
+  handle_path /* {
+    reverse_proxy tienda-prado:3000
+  }
+  log { output stdout }
+}
+```
+Caddy gestionará los certificados TLS (Let's Encrypt) automáticamente, sin configuración adicional.
+
+
 ## Funcionalidades por Entrega
+
+### Entrega 3 — Astro Framework + SSG + React Router + IaaS (Tareas 9–13)
+
+#### Tarea 13 — Despliegue IaaS en VPS con Docker Compose
+
+| Fichero | Descripción |
+|---|---|
+| `Dockerfile` | Imagen Node 24 Alpine con `tsx` para ejecutar TypeScript directamente |
+| `docker-compose-prod.yml` | Orquesta DB + App + Proxy inverso en un solo `docker compose up` |
+| `Caddyfile` | Proxy inverso: reenvío HTTP→App, logs a stdout, HTTPS automático si hay dominio |
+
+- ✅ **Tres servicios:** PostgreSQL 16, Express/Prisma, Caddy — todo en red interna Docker.
+- ✅ **Health-check en la BD:** la app espera a que PostgreSQL esté listo antes de arrancar.
+- ✅ **Sin puertos expuestos en la app:** el tráfico sólo entra por Caddy (seguridad).
+- ✅ **Volúmenes persistentes:** los datos de PostgreSQL y los certificados TLS sobreviven a reinicios.
+- ✅ **HTTPS listo:** cambia `:80` por un dominio en `Caddyfile` → Caddy gestiona TLS automáticamente.
 
 ### Entrega 3 — Astro Framework + SSG + React Router (Tareas 9–12)
 
