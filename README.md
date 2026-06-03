@@ -9,7 +9,7 @@ Aplicación web de e-commerce que replica la tienda online del Museo del Prado, 
 - **Vistas:** Nunjucks + Bootstrap 5
 - **SPA React:** React + Vite + React Router + Embla Carousel + DaisyUI + Tailwind v4
 - **SSG Astro:** Astro + React Islands + Tailwind v4 + DaisyUI v5
-- **Autenticación:** JWT + bcrypt + cookies httpOnly
+- **Autenticación:** JWT + bcryptjs + cookies httpOnly
 - **Logging:** Winston
 - **Despliegue IaaS:** Docker Compose + Caddy (proxy inverso)
 
@@ -45,6 +45,7 @@ Aplicación web de e-commerce que replica la tienda online del Museo del Prado, 
 ├── docker-compose.yml       PostgreSQL en contenedor (desarrollo)
 ├── docker-compose-prod.yml  Despliegue IaaS completo (BD + App + Caddy)
 ├── Dockerfile               Imagen Docker de la tienda (Node 24 Alpine)
+├── docker-entrypoint.sh     Script de arranque: migraciones + inicio Express
 └── Caddyfile                Configuración del proxy inverso Caddy
 ```
 
@@ -97,6 +98,22 @@ docker compose -f docker-compose-prod.yml exec tienda-prado npx tsx registra_usu
 ```
 
 La tienda estará disponible en **http://localhost**.
+
+#### 🔄 Uso habitual (volver a levantar tras un `down`)
+
+```bash
+# Levantar sin reconstruir (los datos de la BD persisten en el volumen)
+docker compose -f docker-compose-prod.yml up -d
+
+# Parar sin borrar datos
+docker compose -f docker-compose-prod.yml down
+
+# Ver logs en tiempo real
+docker compose -f docker-compose-prod.yml logs -f tienda-prado
+```
+
+> ⚠️ `docker compose down` **conserva** los volúmenes (la BD queda intacta).
+> Solo `docker compose down -v` los eliminaría — en ese caso hay que repetir el seed y los usuarios.
 
 #### 🌐 Activar HTTPS en un VPS real
 
