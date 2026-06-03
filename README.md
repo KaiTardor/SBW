@@ -62,6 +62,9 @@ npm run dev
 ```
 
 ### SPA React (Tareas 9 & 10) — Puerto 5173
+
+> ⚠️ **Requiere el backend levantado** (puerto 3000) para que las imágenes de los productos carguen correctamente. Arranca primero el backend (sección anterior) y luego:
+
 ```bash
 cd spa
 npm install
@@ -69,15 +72,18 @@ npm run dev
 ```
 
 ### Sitio Estático Astro (Tareas 11 & 12) — Puerto 4321
+
+> ⚠️ **En modo desarrollo (`pnpm dev`) requiere el backend levantado** (puerto 3000) para servir las imágenes. En producción (build estático / Netlify) es completamente autónomo.
+
 ```bash
 cd astro-tienda
 pnpm install
-pnpm dev        # Desarrollo
-pnpm build      # Build estático → carpeta dist/
-pnpm preview    # Previsualizar build (simula Netlify)
+pnpm dev        # Desarrollo → requiere backend en :3000
+pnpm build      # Build estático → carpeta dist/ (autónomo)
+pnpm preview    # Previsualizar build (simula Netlify, autónomo)
 ```
 
-> El backend (puerto 3000) debe estar levantado para que las imágenes carguen en la SPA. El sitio Astro es completamente autónomo tras el build.
+> 🌐 El deploy en Netlify ([frolicking-chebakia-cdd96b.netlify.app](https://frolicking-chebakia-cdd96b.netlify.app)) es completamente autónomo — no necesita el backend.
 
 ### Despliegue IaaS con Docker Compose (Tarea 13)
 
@@ -137,17 +143,17 @@ Caddy gestionará los certificados TLS (Let's Encrypt) automáticamente, sin con
 
 | Fichero | Descripción |
 |---|---|
-| `Dockerfile` | Imagen Node 24 Alpine con `tsx` para ejecutar TypeScript directamente |
+| `Dockerfile` | Imagen Node 24 Alpine; instala deps de producción, genera cliente Prisma |
 | `docker-compose-prod.yml` | Orquesta DB + App + Proxy inverso en un solo `docker compose up` |
+| `docker-entrypoint.sh` | Script de arranque: ejecuta migraciones Prisma y lanza Express con `tsx` |
 | `Caddyfile` | Proxy inverso: reenvío HTTP→App, logs a stdout, HTTPS automático si hay dominio |
+| `.dockerignore` | Excluye `node_modules/`, `spa/`, `astro-tienda/`, logs, etc. del contexto Docker |
 
 - ✅ **Tres servicios:** PostgreSQL 16, Express/Prisma, Caddy — todo en red interna Docker.
 - ✅ **Health-check en la BD:** la app espera a que PostgreSQL esté listo antes de arrancar.
 - ✅ **Sin puertos expuestos en la app:** el tráfico sólo entra por Caddy (seguridad).
 - ✅ **Volúmenes persistentes:** los datos de PostgreSQL y los certificados TLS sobreviven a reinicios.
 - ✅ **HTTPS listo:** cambia `:80` por un dominio en `Caddyfile` → Caddy gestiona TLS automáticamente.
-
-### Entrega 3 — Astro Framework + SSG + React Router (Tareas 9–12)
 
 #### Tareas 11 & 12 — Astro SSG + React Islands
 
